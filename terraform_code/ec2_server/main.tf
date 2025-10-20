@@ -173,7 +173,7 @@ resource "aws_instance" "my-ec2" {
       "sudo install -m 0755 -d /etc/apt/keyrings",
       "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc",
       "sudo chmod a+r /etc/apt/keyrings/docker.asc",
-      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.[...]",
       "sudo apt-get update -y",
       "sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
       "sudo usermod -aG docker ubuntu",
@@ -219,10 +219,15 @@ resource "aws_instance" "my-ec2" {
       "sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd",
       "rm argocd-linux-amd64", 
 
-      # Install Java 17
-      # Ref: https://www.rosehosting.com/blog/how-to-install-java-17-lts-on-ubuntu-20-04/
+      # Install Java 17 (ensure it replaces any other default java such as Java 24)
       "sudo apt update -y",
-      "sudo apt install openjdk-17-jdk openjdk-17-jre -y",
+      "sudo apt install -y openjdk-17-jdk openjdk-17-jre",
+      "sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17-openjdk-amd64/bin/java 1710",
+      "sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac 1710",
+      "sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java || true",
+      "sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac || true",
+      "echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> ~/.bashrc",
+      "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64",
       "java -version",
 
       # Install Jenkins
@@ -239,9 +244,9 @@ resource "aws_instance" "my-ec2" {
       "pass=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)",
 
       # Output
-      "echo 'Access Jenkins Server here --> http://'$ip':8080'",
-      "echo 'Jenkins Initial Password: '$pass''",
-      "echo 'Access SonarQube Server here --> http://'$ip':9000'",
+      "echo 'Access Jenkins Server here --> http://'\$ip':8080'",
+      "echo 'Jenkins Initial Password: '\$pass''",
+      "echo 'Access SonarQube Server here --> http://'\$ip':9000'",
       "echo 'SonarQube Username & Password: admin'",
     ]
   }
